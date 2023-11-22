@@ -2,7 +2,7 @@
 <br>
 
 ## Table of Contents
-1. [문서 개요](#1)    
+1. [문서 개요](#1)  
     1.1. [목적](#1.1)  
     1.2. [범위](#1.2)  
     1.3. [시스템 구성도](#1.3)  
@@ -10,25 +10,50 @@
 
 2. [Prerequisite](#2)  
     2.1. [설치 목록](#2.1)  
-    2.2. [방화벽 정보](#2.2)     
+    2.2. [방화벽 정보](#2.2)  
 
-3. [Istio 멀티 클러스터 설치](#3)  
-    3.1. [Deployment 파일 다운로드](#3.1)   
-    3.2. [도구 설치](#3.2)  
-    3.3. [멀티 클러스터 접근 구성](#3.3)       
-    3.4. [Istio 멀티 클러스터 설치 변수 정의](#3.4)   
-    3.5. [Istio 멀티 클러스터 설치 스크립트 실행](#3.5)  
-    3.6. [(참조) Istio 멀티 클러스터 삭제](#3.6)   
-       
-4. [샘플 어플리케이션 배포](#4)  
-    4.1. [클러스터 Cluster1 애플리케이션 배포](#4.1)     
-    4.2. [클러스터 Cluster2 애플리케이션 배포](#4.2)    
-    4.3. [Istio Gateway 배포](#4.3)    
-    4.4. [애플리케이션 접속](#4.4)     
-   
+3. [NFS설치](#3)  
+    3.1. [설치 링크](#3.1)  
+    3.2. [NFS provisoner 배포](#3.2)  
+
+4. [Istio 멀티 클러스터 설치](#4)  
+    4.1. [Deployment 파일 다운로드](#4.1)  
+    4.2. [도구 설치](#4.2)  
+    4.3. [멀티 클러스터 접근 구성](#4.3)  
+    4.4. [Istio 멀티 클러스터 설치 변수 정의](#4.4)  
+    4.5. [Istio 멀티 클러스터 설치 스크립트 실행](#4.5)  
+
+5. [컨테이너 플랫폼 포털 배포](#5)  
+    5.1. [StorageClass 설정](#5.1)  
+    5.2. [Ingress NGINX Controller 배포](#5.2)  
+    5.3. [컨테이너 플랫폼 포털 설정](#5.3)  
+    5.3.1 [컨테이너 플랫폼 포털 변수 정의](#5.3.1)  
+    5.3.2 [컨테이너 플랫폼 포털 배포 스크립트 실행](#5.3.2)  
+
+6. [컨테이너 플랫폼 포털 접속](#6)  
+    6.1. [컨테이너 플랫폼 포털 관리자 계정 로그인](#6.1)  
+    6.2. [컨테이너 플랫폼 포털 사용자 계정 로그인](#6.2)  
+    6.3. [컨테이너 플랫폼 포털 사용 가이드](#6.3)  
+
+7. [샘플 애플리케이션 배포](#7)  
+    7.1. [클러스터 Cluster1 애플리케이션 배포](#7.1)  
+    7.2. [클러스터 Cluster2 애플리케이션 배포](#7.2)  
+    7.3. [Istio Gateway 배포](#7.3)  
+    7.7. [애플리케이션 접속](#7.4)  
+
+8. [kiali 배포](#8)  
+    8.1. [클러스터 컨텍스트 변수 정의](#8.1)  
+    8.2. [Prometheus 배포](#8.2)  
+    8.3. [Kiali 배포](#8.3)  
+    8.4. [Kiali UI 접속](#8.4)  
+
+9. [리소스 삭제](#9)  
+    9.1. [(참고) 컨테이너 플랫폼 포털 리소스 삭제](#9.1)   
+    9.2. [(참고) Istio 멀티 클러스터 삭제](#9.2)  
+
 <br>
 
-## <span id='1'> 1. 문서 개요  
+## <span id='1'> 1. 문서 개요
 ### <span id='1.1'> 1.1. 목적
 본 문서(Istio 멀티 클러스터 설치 가이드)는 서로 다른 네트워크에 있는 두 Kubernetes 클러스터의 서비스 간 통신이 가능하도록 Istio 멀티 클러스터를 설치하는 방법을 기술한다.<br>
 <br>
@@ -40,7 +65,7 @@
 
 ### <span id='1.3'>1.3. 시스템 구성도
 
-<br>    
+<br>
 
 ### <span id='1.4'>1.4. 참고 자료
 > [[Istio] Install Multicluster](https://istio.io/latest/docs/setup/install/multicluster)
@@ -57,7 +82,7 @@
 ### <span id='2.1'>2.1. 설치 목록
 설치되는 도구 목록은 아래와 같다.
 | 도구 | 버전 |
-| :---: | :---: |  
+| :---: | :---: |
 | kubectl | 1.27.5 |
 | Helm | 3.12.3 |
 | step | 0.24.4 |
@@ -65,9 +90,9 @@
 | ca-certificates | - |
 | Istio | 1.19.1 |
 
-| Istio 버전 | Kubernetes 지원 버전|  
-| :---: | :---: |  
-| 1.19.1 |1.25, 1.26, 1.27, 1.28|  
+| Istio 버전 | Kubernetes 지원 버전|
+| :---: | :---: |
+| 1.19.1 |1.25, 1.26, 1.27, 1.28|
 
 <br>
 
@@ -76,28 +101,28 @@ IaaS Security Group의 열어줘야할 Port를 설정한다.
 
 - Master Node
 
-| <center>프로토콜</center> | <center>포트</center> | <center>비고</center> |  
-| :---: | :---: | :--- |  
-| TCP | 111 | NFS PortMapper |  
-| TCP | 2049 | NFS |  
-| TCP | 2379-2380 | etcd server client API |  
-| TCP | 6443 | Kubernetes API Server |  
-| TCP | 10250 | Kubelet API |  
-| TCP | 10251 | kube-scheduler |  
-| TCP | 10252 | kube-controller-manager |  
-| TCP | 10255 | Read-Only Kubelet API |  
-| UDP | 4789 | Calico networking VXLAN |  
+| <center>프로토콜</center> | <center>포트</center> | <center>비고</center> |
+| :---: | :---: | :--- |
+| TCP | 111 | NFS PortMapper |
+| TCP | 2049 | NFS |
+| TCP | 2379-2380 | etcd server client API |
+| TCP | 6443 | Kubernetes API Server |
+| TCP | 10250 | Kubelet API |
+| TCP | 10251 | kube-scheduler |
+| TCP | 10252 | kube-controller-manager |
+| TCP | 10255 | Read-Only Kubelet API |
+| UDP | 4789 | Calico networking VXLAN |
 
 - Worker Node
 
-| <center>프로토콜</center> | <center>포트</center> | <center>비고</center> |  
-| :---: | :---: | :--- |  
-| TCP | 111 | NFS PortMapper |  
-| TCP | 2049 | NFS |  
-| TCP | 10250 | Kubelet API |  
-| TCP | 10255 | Read-Only Kubelet API |  
-| TCP | 30000-32767 | NodePort Services |  
-| UDP | 4789 | Calico networking VXLAN |  
+| <center>프로토콜</center> | <center>포트</center> | <center>비고</center> |
+| :---: | :---: | :--- |
+| TCP | 111 | NFS PortMapper |
+| TCP | 2049 | NFS |
+| TCP | 10250 | Kubelet API |
+| TCP | 10255 | Read-Only Kubelet API |
+| TCP | 30000-32767 | NodePort Services |
+| UDP | 4789 | Calico networking VXLAN |
 
 
 <br>
@@ -105,11 +130,11 @@ IaaS Security Group의 열어줘야할 Port를 설정한다.
 ## <span id='3'>3. NFS설치
 
 ### <span id='3.1'>3.1. 설치 링크
-NHN의 경우 default로 제공되는 StorageClass가 없고, Cinder는 쿠버네티스에서 더이상 지원하는 Storage가 아니기 때문에 제외한다. 
+NHN의 경우 default로 제공되는 StorageClass가 없고, Cinder는 쿠버네티스에서 더이상 지원하는 Storage가 아니기 때문에 제외한다.
 컨테이너플랫폼에서 제공하는 NFS를 설치한다. <br>
 [NFS서버 설치](https://github.com/K-PaaS/container-platform/blob/master/install-guide/nfs-server-install-guide.md)
 
-### <span id='3.1'>3.2. NFS provisoner 배포
+### <span id='3.2'>3.2. NFS provisoner 배포
 
 <details>
   <summary><h4> :lock: NFS Provisoner YAML</h4></summary>
@@ -291,12 +316,12 @@ CURRENT   NAME    CLUSTER    AUTHINFO         NAMESPACE
 ```
 - 클러스터 접근 정상 확인
 ```bash
-# Cluster1 노드 조회 
+# Cluster1 노드 조회
 $ kubectl get nodes --context=ctx-1
 NAME                                  STATUS   ROLES    AGE     VERSION
 k8s-cluster-1-default-worker-node-0   Ready    <none>   5h44m   v1.27.3
 
-# Cluster2 노드 조회 
+# Cluster2 노드 조회
 $ kubectl get nodes --context=ctx-2
 NAME                                  STATUS   ROLES    AGE     VERSION
 k8s-cluster-2-default-worker-node-0   Ready    <none>   5h43m   v1.27.3
@@ -305,13 +330,13 @@ k8s-cluster-2-default-worker-node-0   Ready    <none>   5h43m   v1.27.3
 <br>
 
 ### <span id='4.4'>4.4. Istio 멀티 클러스터 설치 변수 정의
-Istio 멀티 클러스터를 설치하기 전 변수 값 정의가 필요하다. 설정에 필요한 정보를 확인하여 변수를 설정한다. 
+Istio 멀티 클러스터를 설치하기 전 변수 값 정의가 필요하다. 설정에 필요한 정보를 확인하여 변수를 설정한다.
 
 ```bash
 $ cd ~/workspace/container-platform/cp-portal-deployment/istio_mc
 $ vi istio-vars-mc.sh
 ```
-```bash                                                     
+```bash
 # COMMON VARIABLE (Please change the value of the variables below.)
 CLUSTER1_CONFIG[CTX]="{cluster1 context name}"    # Cluster1 Context Name
 CLUSTER2_CONFIG[CTX]="{cluster2 context name}"    # Cluster2 Context Name
@@ -403,7 +428,7 @@ cluster1     istio-system/istio-remote-secret-cluster1     synced     istiod-5fc
 ## <span id='5'>5. 컨테이너 플랫폼 포털 배포
 ### <span id='5.1'>5.1. StorageClass 설정
 각 CSP 쿠버네티스 서비스에서 기본 StorageClass를 제공하는지 확인
-+ StorageClass를 제공하지 않는다면 별도 설치 필요 
++ StorageClass를 제공하지 않는다면 별도 설치 필요
 ```bash
 # 클러스터 Cluster1의 StorageClass 조회 (별도 설치)
 $ kubectl get storageclass --context=${CLUSTER1_CONFIG[CTX]}
@@ -422,13 +447,13 @@ nks-block-storage (default)   blk.csi.ncloud.com   Delete          WaitForFirstC
 
 > 클러스터 Cluster1, Cluster2에 Ingress NGINX Controller 배포
 ```bash
-# Helm으로 Cluster1에 Ingress NGINX Controller 배포 
+# Helm으로 Cluster1에 Ingress NGINX Controller 배포
 $ helm upgrade --install ingress-nginx ingress-nginx \
     --repo https://kubernetes.github.io/ingress-nginx \
     --namespace ingress-nginx --create-namespace \
     --kube-context=${CLUSTER1_CONFIG[CTX]}
 
-# Helm으로 Cluster2에 Ingress NGINX Controller 배포 
+# Helm으로 Cluster2에 Ingress NGINX Controller 배포
 $ helm upgrade --install ingress-nginx ingress-nginx \
     --repo https://kubernetes.github.io/ingress-nginx \
     --namespace ingress-nginx --create-namespace \
@@ -439,15 +464,15 @@ $ helm upgrade --install ingress-nginx ingress-nginx \
 
 ### <span id='5.3'>5.3. 컨테이너 플랫폼 포털 설정
 
-#### <div id='5.3.1'>5.3.1. 컨테이너 플랫폼 포털 변수 정의
-컨테이너 플랫폼 포털을 배포하기 전 변수 값 정의가 필요하다. 배포에 필요한 정보를 확인하여 변수를 설정한다. 
+#### <span id='5.3.1'>5.3.1. 컨테이너 플랫폼 포털 변수 정의
+컨테이너 플랫폼 포털을 배포하기 전 변수 값 정의가 필요하다. 배포에 필요한 정보를 확인하여 변수를 설정한다.
 
-:bulb: Keycloak 기본 배포 방식은 **HTTP**이며 인증서를 통한 **HTTPS**를 설정하고자 하는 경우 아래 내용을 참조하여 선처리한다. 
+:bulb: Keycloak 기본 배포 방식은 **HTTP**이며 인증서를 통한 **HTTPS**를 설정하고자 하는 경우 아래 내용을 참조하여 선처리한다.
   <details>
   <summary><h4> :lock: Keycloak Ingress TLS 설정 방법</h4></summary>
-  
+
   <h1></h1>
-  
+
   ```bash
   $ cd ~/workspace/container-platform/cp-portal-deployment/script_mc
   $ vi cp-portal-vars-mc.sh
@@ -474,7 +499,7 @@ $ cd ~/workspace/container-platform/cp-portal-deployment/script_mc
 $ vi cp-portal-vars-mc.sh
 ```
 
-```bash                                                    
+```bash
 # COMMON VARIABLE (Please change the value of the variables below.)
 CLUSTER1_CONFIG[CTX]="{cluster1 context name}"                                  # Cluster1 Context Name
 CLUSTER1_CONFIG[MASTER_NODE_IP]="{cluster1 master node public ip}"              # Cluster1 Master Node Public IP
@@ -492,7 +517,7 @@ HOST_DOMAIN="{host domain}"                                                     
 PROVIDER_TYPE="{container platform portal provider type}"                       # Container Platform Portal Provider Type (Please enter 'standalone' or 'service')
 ```
 
-```bash    
+```bash
 # Example
 CLUSTER1_CONFIG[CTX]="ctx-1"
 CLUSTER1_CONFIG[MASTER_NODE_IP]="xxx.xxx.xxx.xxx"
@@ -513,7 +538,7 @@ PROVIDER_TYPE="standalone"
 - **CLUSTER_CONFIG**
   + **[CTX]** <br>해당 클러스터 컨텍스트 명 입력
   + **[MASTER_NODE_IP]** <br>해당 클러스터 Master Node Public IP 입력<br>
-    - Master Node에 접근하기 어려운 경우, Worker Node Public IP 입력 
+    - Master Node에 접근하기 어려운 경우, Worker Node Public IP 입력
   + **[API_SERVER]** <br>해당 클러스터 API Server URL 입력
   + **[STORAGECLASS]** <br>해당 클러스터 StorageClass 명 입력
   + **[IAAS_TYPE]** <br>해당 클러스터 IaaS 환경 입력
@@ -522,7 +547,7 @@ PROVIDER_TYPE="standalone"
 
 - **PROVIDER_TYPE** <br>컨테이너 플랫폼 포털 제공 타입 입력 <br>
    + 본 가이드는 포털 단독 배포 형 설치 가이드로 **'standalone'** 값 입력 필요 <br><br>
-   
+
 - **HOST_DOMAIN** <br>클러스터 **Cluster1**의 `{ingress-nginx-controller service EXTERNAL-IP}.nip.io` 입력<br>
    + 컨테이너 플랫폼 포털은 Kubernetes 리소스 Ingress를 통해 각 서비스를 라우팅하며, 클러스터 설치 시 Ingress NGINX Controller 배포를 포함한다.
      호스트 도메인은 Ingress NGINX Controller Service의 <b>EXTERNAL-IP</b> 와 무료 wildcard DNS 서비스 <b>nip.io</b>를 사용한다.
@@ -559,11 +584,11 @@ Switched to context "ctx-1".
   $ kubectl get svc -n ingress-nginx --context=ctx-1
   NAME                       TYPE           CLUSTER-IP      EXTERNAL-IP            PORT(S)                      AGE
   ingress-nginx-controller   LoadBalancer   xx.xxx.xxx.xx   xx.xxx.xxx.xx (조회)   80:30820/TCP,443:32268/TCP   10d
-  ```   
-  
+  ```
+
 <br>
 
-#### <div id='5.3.2'>5.3.2. 컨테이너 플랫폼 포털 배포 스크립트 실행
+#### <span id='5.3.2'>5.3.2. 컨테이너 플랫폼 포털 배포 스크립트 실행
 컨테이너 플랫폼 포털 배포를 위한 배포 스크립트를 실행한다.
 
 ```bash
@@ -584,7 +609,7 @@ cp-vault-agent-injector-86c8f48987-7b9vk   2/2     Running   0          6m
 ```
 
 - **Harbor Pod 조회**
->`$ kubectl get pods -n harbor`      
+>`$ kubectl get pods -n harbor`
 ```sh
 NAME                                       READY   STATUS    RESTARTS        AGE
 cp-harbor-chartmuseum-7d6df785b6-tqrfg     2/2     Running   0               6m10s
@@ -597,17 +622,17 @@ cp-harbor-portal-7d88cc5d89-fbwwn          2/2     Running   0               6m1
 cp-harbor-redis-0                          2/2     Running   0               6m10s
 cp-harbor-registry-6f6445db78-m72rz        3/3     Running   0               6m10s
 cp-harbor-trivy-0                          2/2     Running   0               6m10s
-```  
+```
 
 - **MariaDB Pod 조회**
 >`$ kubectl get pods -n mariadb --context=ctx-2`
 ```sh
 NAME           READY   STATUS    RESTARTS   AGE
 cp-mariadb-0   2/2     Running   0          2m44s
-```    
+```
 
 - **Keycloak Pod 조회**
->`$ kubectl get pods -n keycloak`     
+>`$ kubectl get pods -n keycloak`
 ```sh
 NAME                          READY   STATUS    RESTARTS   AGE
 cp-keycloak-8c8584f58-d7lzj   2/2     Running   0          3m5s
@@ -615,41 +640,41 @@ cp-keycloak-8c8584f58-dck4d   2/2     Running   0          3m5s
 ```
 
 - **컨테이너 플랫폼 포털 Pod 조회**
->`$ kubectl get pods -n cp-portal --context=ctx-1`        
+>`$ kubectl get pods -n cp-portal --context=ctx-1`
 ```sh
 NAME                                             READY   STATUS    RESTARTS   AGE
 cp-portal-api-deployment-58fd89c958-s7psz        2/2     Running   0          3m23s
 cp-portal-terraman-deployment-577ffb557c-ttkqj   2/2     Running   0          3m21s
 cp-portal-ui-deployment-659fb4c85f-fp7br         2/2     Running   0          3m25s
-```  
+```
 
->`$ kubectl get pods -n cp-portal --context=ctx-2`        
+>`$ kubectl get pods -n cp-portal --context=ctx-2`
 ```sh
 NAME                                               READY   STATUS    RESTARTS        AGE
 cp-portal-common-api-deployment-64bcb8df7c-b5jc4   2/2     Running   0               3m57s
 cp-portal-metric-api-deployment-7f9cf64544-4sb4t   2/2     Running   2 (3m27s ago)   3m56s
-```  
+```
 
 <br>
 
 
-<br>    
+<br>
 
-## <div id='6'>6. 컨테이너 플랫폼 포털 접속
+## <span id='6'>6. 컨테이너 플랫폼 포털 접속
 컨테이너 플랫폼 포털에 접속한다.<br><br>
-**컨테이너 플랫폼 포털 URL** : `http://portal.${HOST_DOMAIN}` 
+**컨테이너 플랫폼 포털 URL** : `http://portal.${HOST_DOMAIN}`
   + [[3.1.2. 컨테이너 플랫폼 포털 변수 정의]](#3.1.2) 에서 정의한 `HOST_DOMAIN` 값 입력
 
 <br>
 
-### <div id='6.1'/>6.1. 컨테이너 플랫폼 포털 관리자 계정 로그인
+### <span id='6.1'/>6.1. 컨테이너 플랫폼 포털 관리자 계정 로그인
 관리자 계정은 패스워드 초기화 설정이 필요하므로 아래 내용을 참조하여 선처리한다.
 <details>
 <summary><h4> :key: 컨테이너 플랫폼 포털 관리자 계정 패스워드 설정 </h4></summary>
-  
-<h1></h1>  
 
-### 1. Keycloak Admin 계정 정보 조회 
+<h1></h1>
+
+### 1. Keycloak Admin 계정 정보 조회
 Keycloak Admin 계정 정보는 아래 명령어를 통해 확인한다.
 ```bash
 # Keycloak Admin 계정 조회
@@ -671,15 +696,15 @@ Keycloak Admin Console에 접속 후 조회한 Keycloak Admin 계정으로 로�
 
 <br>
 
-### 3. 컨테이너 플랫폼 관리자 계정 패스워드 초기화 
+### 3. 컨테이너 플랫폼 관리자 계정 패스워드 초기화
 - 왼쪽 상단의 Realm 정보를 `Cp-realm` 으로 변경한다.
 
 ![image 012]
 
 - 메뉴 [Users] 선택 후 Username 이 `admin`인 계정을 클릭한다.
 
-![image 013]  
-  
+![image 013]
+
 - 메뉴 [Credentials] 선택 후 버튼 [Reset password]을 클릭하여 패스워드 초기화를 진행한다.
   + **Password** : `초기화할 패스워드 값 입력`
   + **Temporary** : `Off` 선택
@@ -695,48 +720,48 @@ Keycloak Admin Console에 접속 후 조회한 Keycloak Admin 계정으로 로�
 - 관리자 계정으로 컨테이너 플랫폼 포털에 로그인한다.
   + **Username** : `admin`
   + **Password** : `초기화한 패스워드 값`
-  
+
 ![image 002]
 
 <br>
 
-### <div id='6.2'/>6.2. 컨테이너 플랫폼 포털 사용자 계정 로그인
-#### 사용자 회원가입    
+### <span id='6.2'/>6.2. 컨테이너 플랫폼 포털 사용자 계정 로그인
+#### 사용자 회원가입
 - 하단의 'Register' 버튼을 클릭한다.
-  
+
 ![image 003]
 
 - 등록할 사용자 계정정보를 입력 후 'Register' 버튼을 클릭하여 컨테이너 플랫폼 포털에 회원가입한다.
-  
-![image 004]  
+
+![image 004]
 
 - 회원가입 후 바로 포털 접속이 불가하며 관리자로부터 해당 사용자가 이용할 Namespace와 Role을 할당 받은 후 포털 이용이 가능하다.
 Namespace와 Role 할당은 [[4.3. 컨테이너 플랫폼 사용자/운영자 포털 사용 가이드]](#4.3) 를 참고한다.
 
-![image 005]    
+![image 005]
 
-#### 사용자 로그인   
+#### 사용자 로그인
 - 회원가입을 통해 등록된 계정으로 컨테이너 플랫폼 포털에 로그인한다.
-  
+
 ![image 006]
-
-<br>    
-
-### <div id='6.3'/>6.3. 컨테이너 플랫폼 포털 사용 가이드
-- 컨테이너 플랫폼 포털 사용방법은 아래 사용가이드를 참고한다.  
-  + [컨테이너 플랫폼 포털 사용 가이드](../../use-guide/portal/container-platform-portal-guide.md)    
 
 <br>
 
-## <span id='7'>7. 샘플 애플리케이션 배포 
+### <span id='6.3'/>6.3. 컨테이너 플랫폼 포털 사용 가이드
+- 컨테이너 플랫폼 포털 사용방법은 아래 사용가이드를 참고한다.
+  + [컨테이너 플랫폼 포털 사용 가이드](../../use-guide/portal/container-platform-portal-guide.md)
+
+<br>
+
+## <span id='7'>7. 샘플 애플리케이션 배포
 ### [Bookinfo Application](https://istio.io/latest/docs/examples/bookinfo/)
 <figure>
     <img src="https://istio.io/latest/docs/examples/bookinfo/withistio.svg" title="Bookinfo Application">
 </figure>
 
-#### 애플리케이션 배포 위치 
+#### 애플리케이션 배포 위치
 | 애플리케이션| Cluster1 | Cluster2 |
-| :---: |:---: | :---: |  
+| :---: |:---: | :---: |
 | productpage | :heavy_check_mark: | :heavy_check_mark: |
 | details |  | :heavy_check_mark: |
 | ratings |  :heavy_check_mark: |  |
@@ -746,10 +771,10 @@ Namespace와 Role 할당은 [[4.3. 컨테이너 플랫폼 사용자/운영자 �
 
 <br>
 
-### <span id='7.1'>7.1. 클러스터 Cluster1 애플리케이션 배포 
+### <span id='7.1'>7.1. 클러스터 Cluster1 애플리케이션 배포
 ```bash
 $ cd ~/workspace/container-platform/cp-portal-deployment/istio_mc
-$ source istio-vars-mc.sh 
+$ source istio-vars-mc.sh
 $ kubectl create namespace sample --context=${CLUSTER1_CONFIG[CTX]}
 $ kubectl label namespace sample istio-injection=enabled --context=${CLUSTER1_CONFIG[CTX]}
 $ kubectl create -f bookinfo-cluster1.yaml -n sample --context=${CLUSTER1_CONFIG[CTX]}
@@ -768,7 +793,7 @@ deployment.apps/productpage-v1 created
 
 <br>
 
-### <span id='7.2'>7.2. 클러스터 Cluster2 애플리케이션 배포 
+### <span id='7.2'>7.2. 클러스터 Cluster2 애플리케이션 배포
 ```bash
 $ kubectl create namespace sample --context=${CLUSTER2_CONFIG[CTX]}
 $ kubectl label namespace sample istio-injection=enabled --context=${CLUSTER2_CONFIG[CTX]}
@@ -798,8 +823,8 @@ virtualservice.networking.istio.io/bookinfo created
 
 <br>
 
-### <span id='7.4'>7.4. 애플리케이션 접속 
-```bash 
+### <span id='7.4'>7.4. 애플리케이션 접속
+```bash
 $ export INGRESS_NAME=istio-ingressgateway
 $ export INGRESS_NS=istio-system
 
@@ -816,10 +841,127 @@ http://xxx.xxx.xxx.xxx/productpage
 ```
 <br>
 
+## <span id='8'>8. kiali 배포
+<b>[Kiali](https://istio.io/latest/docs/ops/integrations/kiali/)</b>는 Istio 용 서비스 메시 모니터링 도구이다. 메시 트래픽 흐름을 모니터링하고 구조를 이해하는 데 도움을 준다. <br>
+Kiali 멀티 클러스터 그리고 Prometheus 페더레이션을 통해 하나의 클러스터에서 두 클러스터 메시 트래픽을 관찰할 수 있도록 구성한다.
 
-## <span id='8'>8. 리소스 삭제
+<br>
 
-#### <div id='8.1'>8.1. (참조) 컨테이너 플랫폼 포털 리소스 삭제
+### <span id='8.1'>8.1. 클러스터 컨텍스트 변수 정의
+> `CLUSTER_PRIMARY` : Kiali가 배포되고 타 클러스터의 Prometheus 데이터를 집계하는 주요 클러스터
+```bash
+export CLUSTER_PRIMARY="{클러스터 컨텍스트 명 입력}"  #(e.g. ctx-1)
+export CLUSTER_REMOTE="{클러스터 컨텍스트 명 입력}"   #(e.g. ctx-2)
+```
+
+<br>
+
+### <span id='8.2'>8.2. Prometheus 배포
+```bash
+# istio addons 디렉토리 이동
+$ cd ~/workspace/container-platform/cp-portal-deployment/istio_mc/tools/istio-1.19.1/samples/addons
+
+# primary, remote 클러스터에 prometheus 배포
+$ kubectl --context="${CLUSTER_PRIMARY}" apply -f prometheus.yaml
+$ kubectl --context="${CLUSTER_REMOTE}" apply -f prometheus.yaml
+
+# remote 클러스터 prometheus 서비스 'LoadBalancer' 타입으로 변경
+$ kubectl --context="${CLUSTER_REMOTE}" patch svc prometheus -n istio-system -p "{\"spec\": {\"type\": \"LoadBalancer\"}}"
+
+# remote 클러스터 prometheus 서비스 EXTERNAL-IP 할당 확인
+$ kubectl --context="${CLUSTER_REMOTE}" get svc prometheus -n istio-system
+NAME         TYPE           CLUSTER-IP      EXTERNAL-IP              PORT(S)          AGE
+prometheus   LoadBalancer   10.254.242.13   105.xxx.xxx.xxx (확인)   9090:30272/TCP   72s
+
+# remote 클러스터 prometheus 서비스 EXTERNAL-IP 변수 설정
+$ REMOTE_PROMETHEUS_ADDRESS=$(kubectl --context="${CLUSTER_REMOTE}" -n istio-system get svc prometheus -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+$ echo $REMOTE_PROMETHEUS_ADDRESS
+105.xxx.xxx.xxx
+
+# 파일 다운로드
+$ curl -L -o primary-prometheus-cm.yaml https://raw.githubusercontent.com/kiali/kiali/master/hack/istio/multicluster/prometheus.yaml
+$ sed -i "s/WEST_PROMETHEUS_ADDRESS/$REMOTE_PROMETHEUS_ADDRESS/g" primary-prometheus-cm.yaml
+
+# primary 클러스터에 prometheus config 업데이트
+$ kubectl --context="${CLUSTER_PRIMARY}" apply -f primary-prometheus-cm.yaml -n istio-system
+```
+
+<br>
+
+### <span id='8.3'>8.3. Kiali 배포
+```bash
+# remote 클러스터 자격증명 구성을 위한 스크립트 다운로드
+$ curl -L -o kiali-prepare-remote-cluster.sh https://raw.githubusercontent.com/kiali/kiali/master/hack/istio/multicluster/kiali-prepare-remote-cluster.sh
+$ chmod +x kiali-prepare-remote-cluster.sh
+
+# primary 클러스터에 remote 클러스터 자격증명 구성
+$ ./kiali-prepare-remote-cluster.sh --kiali-cluster-context "${CLUSTER_PRIMARY}" --remote-cluster-context "${CLUSTER_REMOTE}"
+
+# primary 클러스터에 kiali 배포
+$ helm upgrade --install --namespace istio-system --set auth.strategy=anonymous \
+  --set deployment.logger.log_level=debug --set deployment.ingress.enabled=true \
+  --repo https://kiali.org/helm-charts kiali-server kiali-server \
+  --kube-context="${CLUSTER_PRIMARY}"
+```
+
+<br>
+
+### <span id='8.4'>8.4. Kiali UI 접속
+> `{istio-ingressgateway-ip}` : primary 클러스터의 istio-ingressgateway 서비스 EXTERNAL-IP 입력
+```bash
+$ kubectl --context="${CLUSTER_PRIMARY}" get svc istio-ingressgateway -n istio-system
+NAME                   TYPE           CLUSTER-IP       EXTERNAL-IP              PORT(S)                          AGE
+istio-ingressgateway   LoadBalancer   198.19.179.175   106.xxx.xxx.xxx (입력)   15021:32164/TCP,80:31963/TCP...  5h56m
+```
+```bash
+$ vi kiali-gateway.yaml
+```
+```yaml
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: kiali-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http2
+        protocol: HTTP
+      hosts:
+        - "kiali.{istio-ingressgateway-ip}.nip.io"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: kiali
+spec:
+  hosts:
+    - "kiali.{istio-ingressgateway-ip}.nip.io"
+  gateways:
+    - kiali-gateway
+  http:
+  - route:
+    - destination:
+        host: kiali
+        port:
+          number: 20001
+```
+```bash
+# Gateway, VirtualService 배포
+$ kubectl --context="${CLUSTER_PRIMARY}" apply -f kiali-gateway.yaml -n istio-system
+
+# kiali ui 접속 URL
+kiali.{istio-ingressgateway-ip}.nip.io
+```
+
+<br>
+
+
+## <span id='9'>9. 리소스 삭제
+
+### <span id='9.1'>9.1. (참고) 컨테이너 플랫폼 포털 리소스 삭제
 배포된 컨테이너 플랫폼 포털 리소스의 삭제를 원하는 경우 아래 스크립트를 실행한다.<br>
 :loudspeaker: (주의) 컨테이너 플랫폼 포털이 운영되는 상태에서 해당 스크립트 실행 시, **운영에 필요한 리소스가 모두 삭제**되므로 주의가 필요하다.<br>
 
@@ -831,7 +973,7 @@ $ ./uninstall-cp-portal-mc.sh
 
 <br>
 
-### <span id='8.2'>8.2. (참조) Istio 멀티 클러스터 삭제
+### <span id='9.2'>9.2. (참고) Istio 멀티 클러스터 삭제
 설치된 Istio 멀티 클러스터 구성의 삭제를 원하는 경우 아래 스크립트를 실행한다.<br>
 :loudspeaker: (주의) 해당 스크립트 실행 시, **Istio 멀티클러스터 구성이 모두 제거**되므로 주의가 필요하다.<br>
 
