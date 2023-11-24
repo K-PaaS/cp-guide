@@ -247,10 +247,6 @@ provisioner: cp-nfs-provisioner
 parameters:
   archiveOnDelete: "false"
 ```
-
-```sh
-kubectl apply -f nfs.yaml
-```
   <h1></h1>
   <br>
   </details>
@@ -291,6 +287,41 @@ $ chmod +x install_tools.sh
 $ ./install_tools.sh
 ```
 
+```sh
+kubectl apply -f nfs.yaml
+```
+
+<br>
+
+### ncloud 인증정보 등록
+```sh
+mkdir ~/.ncloud
+vi ~/.ncloud/configure
+[DEFAULT]
+ncloud_access_key_id = xxxx
+ncloud_secret_access_key = xxxx
+ncloud_api_url = https://ncloud.apigw.gov-ntruss.com
+```
+
+### ncp-iam-authenticator 설치
+```sh
+curl -o ncp-iam-authenticator -L https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/latest/download/ncp-iam-authenticator_linux_amd64
+
+chmod +x ./ncp-iam-authenticator
+
+mkdir -p $HOME/bin && cp ./ncp-iam-authenticator $HOME/bin/ncp-iam-authenticator && export PATH=$PATH:$HOME/bin
+
+echo 'export PATH=$PATH:$HOME/bin' >> ~/.bash_profile
+
+ncp-iam-authenticator help
+```
+
+### nCloud kubeConfig 업데이트
+```sh
+ncp-iam-authenticator update-kubeconfig --region KR --clusterUuid {UUID}
+```
+
+
 <br>
 
 ### <span id='4.3'>4.3. 멀티 클러스터 접근 구성
@@ -299,6 +330,7 @@ Istio 멀티 클러스터를 설치할 클러스터 Cluster1, Cluster2에 접근
 ```bash
 # .kube 디렉터리 생성
 $ mkdir -p ${HOME}/.kube
+$ chmod 600 .kube/config
 
 # Cluster1, Cluster2 kubeconfig 파일 위치
 $ ls ${HOME}/.kube
