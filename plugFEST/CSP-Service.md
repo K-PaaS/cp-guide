@@ -254,6 +254,9 @@ parameters:
 
 <br>
 
+클러스터 생성 후 NHN에는 Kubernetes 노드에 공인IP를 붙이고, 보안그룹을 추가한다.  
+NCloud 에도 보안그룹을 추가한다.
+
 ## <span id='4'>4. Istio 멀티 클러스터 설치
 
 ### <span id='4.1'>4.1. Deployment 파일 다운로드
@@ -292,6 +295,10 @@ kubectl apply -f nfs.yaml
 ```
 
 <br>
+
+### nhn kubeconfig 정보 등록
+![image](https://github.com/K-PaaS/cp-guide/assets/67575226/3b83f5ad-7da5-492f-af90-28df4e3bc901)
+
 
 ### ncloud 인증정보 등록
 ```sh
@@ -372,6 +379,11 @@ $ vi istio-vars-mc.sh
 # COMMON VARIABLE (Please change the value of the variables below.)
 CLUSTER1_CONFIG[CTX]="{cluster1 context name}"    # Cluster1 Context Name
 CLUSTER2_CONFIG[CTX]="{cluster2 context name}"    # Cluster2 Context Name
+...
+CLUSTER1_CONFIG[CLUSTER_NAME]="nhn"
+CLUSTER1_CONFIG[NETWORK]="network1"
+CLUSTER2_CONFIG[CLUSTER_NAME]="ncloud"
+CLUSTER2_CONFIG[NETWORK]="network2"
 ```
 
 <b>CLUSTER1_CONFIG[CTX]</b><br>
