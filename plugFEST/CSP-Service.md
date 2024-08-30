@@ -127,6 +127,17 @@ IaaS Security Group의 열어줘야할 Port를 설정한다.
 
 <br>
 
+## KT 설치
+VM 3개 생성  
+공인 IP 1개 생성  
+VM에 접속설정 22번 포트 포워딩  
+Network 에서 아래와 같이 설정
+![image](https://github.com/K-PaaS/cp-guide/assets/67575226/e395289e-0814-4b8e-aa78-2b056a39eeb0)
+
+1번서버에 Key복사   
+NFS 설치   
+
+
 ## <span id='3'>3. NFS설치
 
 ### <span id='3.1'>3.1. 설치 링크
